@@ -1,446 +1,214 @@
-:root {
-    --bg: #0b0f19;
-    --surface: #131c2e;
-    --surface-alt: #1e293b;
-    --text: #f8fafc;
-    --text-muted: #94a3b8;
-    --primary: #0ea5e9;
-    --primary-hover: #0284c7;
-    --border-color: #1e293b;
-    --card-hover: #1e293b;
-    --input-bg: #1e293b;
-    --success: #10b981;
+// ===== THÈME (Clair/Sombre) =====
+function toggleTheme() {
+    document.body.classList.toggle('dark');
+    const isDark = document.body.classList.contains('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    updateThemeIcon(isDark);
 }
 
-body.light {
-    --bg: #f8fafc;
-    --surface: #ffffff;
-    --surface-alt: #f1f5f9;
-    --text: #0f172a;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
-    --card-hover: #f1f5f9;
-    --input-bg: #ffffff;
+// Initialiser le thème au chargement
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark');
+        updateThemeIcon(true);
+    }
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
+function updateThemeIcon(isDark) {
+    const icon = document.querySelector('.theme-icon');
+    icon.textContent = isDark ? '☀️' : '🌓';
 }
 
-html {
-    scroll-behavior: smooth;
+// ===== MENU MOBILE =====
+function toggleMobileMenu() {
+    const menu = document.getElementById('mobileMenu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 }
 
-body {
-    background: var(--bg);
-    color: var(--text);
-    transition: background 0.3s, color 0.3s;
-    line-height: 1.6;
+// Fermer le menu mobile si on clique ailleurs
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('mobileMenu');
+    const toggle = document.querySelector('.mobile-menu-toggle');
+    if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+        menu.style.display = 'none';
+    }
+});
+
+// ===== SÉLECTION DE SERVICE =====
+function selectService(service) {
+    const status = document.getElementById('serviceStatus');
+    const serviceNames = {
+        depannage: '⚡ Dépannage d\'urgence',
+        maintenance: '⚙️ Maintenance préventive',
+        chantier: '🏗️ Gestion de chantiers'
+    };
+    status.textContent = serviceNames[service] || '⚡ Aucun service sélectionné';
+    document.getElementById('serviceType').value = service;
+
+    // Fermer le menu mobile si ouvert
+    document.getElementById('mobileMenu').style.display = 'none';
 }
 
-/* HEADER & NAV */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 40px;
-    background: var(--surface);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    border-bottom: 1px solid var(--border-color);
+function updateServiceStatus() {
+    const select = document.getElementById('serviceType');
+    const status = document.getElementById('serviceStatus');
+    const serviceNames = {
+        depannage: '⚡ Dépannage d\'urgence',
+        maintenance: '⚙️ Maintenance préventive',
+        chantier: '🏗️ Gestion de chantiers'
+    };
+    status.textContent = serviceNames[select.value] || '⚡ Aucun service sélectionné';
 }
 
-.logo a {
-    color: var(--primary);
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 1.4rem;
-    letter-spacing: -0.5px;
+// ===== SOUMISSION DU FORMULAIRE =====
+document.getElementById('reservationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const form = e.target;
+    const resultPanel = document.getElementById('result');
+    const submitBtn = form.querySelector('button[type="submit"]');
+
+    // Désactiver le bouton pendant le traitement
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span>Traitement...</span> <span class="spinner">🌀</span>';
+
+    // Simuler un délai de traitement (remplacer par un vrai appel API)
+    setTimeout(() => {
+        // Récupérer les valeurs
+        const service = form.serviceType.value;
+        const location = form.location.value;
+        const date = form.date.value;
+        const details = form.details.value;
+        const phone = form.phone.value;
+
+        // Générer un devis aléatoire (exemple)
+        const servicesPrices = {
+            depannage: { min: 25000, max: 150000 },
+            maintenance: { min: 50000, max: 300000 },
+            chantier: { min: 500000, max: 5000000 }
+        };
+        const priceRange = servicesPrices[service] || { min: 20000, max: 100000 };
+        const estimatedPrice = Math.floor(
+            Math.random() * (priceRange.max - priceRange.min + 1) + priceRange.min
+        ).toLocaleString('fr-FR');
+
+        // Afficher le résultat
+        resultPanel.innerHTML = `
+            <div class="result-box">
+                <div class="result-icon">✅</div>
+                <h3>Devis généré avec succès !</h3>
+                <p>Votre demande a été enregistrée. Voici une estimation :</p>
+                <div class="result-details">
+                    <div class="result-item">
+                        <span class="result-label">Service :</span>
+                        <span class="result-value">${form.serviceType.options[form.serviceType.selectedIndex].text}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Localisation :</span>
+                        <span class="result-value">${location}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Date :</span>
+                        <span class="result-value">${new Date(date).toLocaleDateString('fr-FR')}</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Estimation :</span>
+                        <strong class="result-value">${estimatedPrice} FCFA</strong>
+                    </div>
+                </div>
+                <p class="result-message">
+                    Un conseiller vous contactera sous 15 minutes au <strong>${phone}</strong> pour confirmer l'intervention.
+                </p>
+                <a href="https://wa.me/2250141298874?text=Bonjour%2C%20je%20souhaite%20confirmer%20ma%20demande%20d%27intervention%20pour%20${encodeURIComponent(service)}%20%C3%A0%20${encodeURIComponent(location)}"
+                   class="btn btn-primary"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                    <span>Confirmer par WhatsApp</span>
+                    <span class="btn-arrow">→</span>
+                </a>
+            </div>
+        `;
+
+        // Réactiver le bouton
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Demander l\'intervention</span> <span class="btn-arrow">→</span>';
+
+        // Scroll vers le résultat
+        resultPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Réinitialiser le formulaire (optionnel)
+        // form.reset();
+    }, 1500);
+});
+
+// ===== ANIMATIONS AU SCROLL =====
+function initScrollAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in-up');
+                const delayClass = entry.target.dataset.delay ? `delay-${entry.target.dataset.delay}` : '';
+                if (delayClass) {
+                    entry.target.classList.add(delayClass);
+                }
+            }
+        });
+    }, { threshold: 0.1 });
+
+    // Observer les éléments avec la classe "animate-on-scroll"
+    document.querySelectorAll('.animate-on-scroll').forEach(el => {
+        observer.observe(el);
+    });
+
+    // Ajouter la classe aux éléments clés
+    document.querySelectorAll('.section-header, .service-card, .engagement-card, .testimonial-card, .contact-card').forEach((el, index) => {
+        el.classList.add('animate-on-scroll');
+        el.dataset.delay = (index % 4) + 1; // Delay de 1 à 4
+    });
 }
 
-.header nav a {
-    margin: 0 15px;
-    color: var(--text);
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.95rem;
-    opacity: 0.8;
-    transition: opacity 0.2s, color 0.2s;
+// ===== STATS ANIMATION (Counter) =====
+function animateStats() {
+    const stats = document.querySelectorAll('.stat-number[data-target]');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = parseInt(entry.target.dataset.target.replace(/\D/g, ''));
+                const isDecimal = entry.target.dataset.target.includes('.');
+                let current = 0;
+                const increment = target / 100;
+                const duration = 2000; // 2 secondes
+                const stepTime = duration / 100;
+
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    entry.target.textContent = isDecimal
+                        ? (current / 10).toFixed(1).replace('.', ',')
+                        : Math.floor(current).toLocaleString('fr-FR');
+                }, stepTime);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.5 });
+
+    stats.forEach(stat => observer.observe(stat));
 }
 
-.header nav a:hover {
-    opacity: 1;
-    color: var(--primary);
-}
+// ===== INITIALISATION =====
+document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    initScrollAnimations();
+    animateStats();
 
-.header .mode {
-    width: auto;
-    padding: 8px 16px;
-    background: var(--surface-alt);
-    border: 1px solid var(--border-color);
-    color: var(--text);
-    font-size: 0.85rem;
-}
-
-/* HERO SECTION */
-.hero {
-    padding: 140px 20px;
-    background: radial-gradient(circle at top right, rgba(14, 165, 233, 0.15), transparent), linear-gradient(180deg, var(--surface), var(--bg));
-    text-align: center;
-}
-
-.hero-content {
-    max-width: 800px;
-    margin: auto;
-}
-
-.badge {
-    background: rgba(14, 165, 233, 0.15);
-    color: var(--primary);
-    padding: 6px 16px;
-    border-radius: 50px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    display: inline-block;
-    margin-bottom: 20px;
-}
-
-.hero h1 {
-    font-size: 3rem;
-    font-weight: 700;
-    line-height: 1.2;
-    margin-bottom: 20px;
-    letter-spacing: -1px;
-}
-
-.hero p {
-    font-size: 1.15rem;
-    color: var(--text-muted);
-    margin-bottom: 40px;
-}
-
-.hero-actions {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-}
-
-/* BUTTONS */
-.btn {
-    display: inline-block;
-    padding: 14px 28px;
-    background: var(--primary);
-    color: white;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.2s, background 0.2s;
-}
-
-.btn:hover {
-    background: var(--primary-hover);
-    transform: translateY(-2px);
-}
-
-.btn-secondary {
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover {
-    background: var(--surface-alt);
-}
-
-/* STATS SECTION */
-.stats-container {
-    display: flex;
-    justify-content: space-around;
-    max-width: 1000px;
-    margin: -50px auto 40px auto;
-    background: var(--surface);
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
-    border: 1px solid var(--border-color);
-}
-
-.stat-item {
-    text-align: center;
-}
-
-.stat-number {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: var(--primary);
-}
-
-.stat-label {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    margin-top: 5px;
-}
-
-/* SECTIONS STRUCTURE */
-.section {
-    padding: 80px 20px;
-    max-width: 1100px;
-    margin: auto;
-}
-
-.section-alt {
-    background: var(--surface);
-    max-width: 100%;
-    padding: 80px calc((100% - 1100px) / 2 + 20px);
-}
-
-.section-header {
-    text-align: center;
-    max-width: 600px;
-    margin: 0 auto 50px auto;
-}
-
-.section-header h2 {
-    font-size: 2rem;
-    margin-bottom: 15px;
-    font-weight: 700;
-}
-
-.section-header p {
-    color: var(--text-muted);
-}
-
-/* CARDS & GRID */
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-}
-
-.card {
-    background: var(--surface);
-    padding: 30px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-body.light .card {
-    background: var(--surface);
-}
-
-.card-icon {
-    font-size: 2rem;
-    margin-bottom: 15px;
-}
-
-.card h3 {
-    margin-bottom: 10px;
-    font-size: 1.3rem;
-}
-
-.card p {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-}
-
-.card:hover, .card:focus-visible {
-    transform: translateY(-5px);
-    background: var(--card-hover);
-    border-color: var(--primary);
-}
-
-.card.active {
-    border-color: var(--primary);
-    background: rgba(14, 165, 233, 0.05);
-}
-
-/* ENGAGEMENTS / FEATURES */
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-}
-
-.feature-item {
-    background: var(--bg);
-    padding: 25px;
-    border-radius: 8px;
-    border: 1px solid var(--border-color);
-}
-
-.feature-title {
-    font-weight: 600;
-    margin-bottom: 10px;
-    font-size: 1.1rem;
-}
-
-.feature-item p {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-}
-
-/* BOOKING FORM & BOX */
-.booking-box {
-    max-width: 700px;
-    margin: auto;
-    background: var(--surface);
-    border: 1px solid var(--border-color);
-    padding: 40px;
-    border-radius: 16px;
-}
-
-.selected-service-banner {
-    background: var(--bg);
-    padding: 12px;
-    border-radius: 8px;
-    text-align: center;
-    font-weight: 600;
-    margin-bottom: 25px;
-    border: 1px solid var(--border-color);
-}
-
-#serviceSelected {
-    color: var(--primary);
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    font-size: 0.9rem;
-}
-
-input, textarea {
-    width: 100%;
-    padding: 14px;
-    background: var(--input-bg);
-    color: var(--text);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    outline: none;
-    transition: border-color 0.2s;
-    font-size: 0.95rem;
-}
-
-input:focus, textarea:focus {
-    border-color: var(--primary);
-}
-
-.btn-main {
-    width: 100%;
-    margin-top: 10px;
-}
-
-/* REVIEWS */
-.review-card {
-    background: var(--bg);
-    padding: 30px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-}
-
-.stars {
-    margin-bottom: 10px;
-}
-
-.review-text {
-    font-style: italic;
-    color: var(--text);
-    margin-bottom: 15px;
-}
-
-.review-author {
-    color: var(--primary);
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-
-/* CONTACT CARDS */
-.contact-cards {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
-}
-
-.contact-card {
-    background: var(--surface);
-    padding: 25px 40px;
-    border-radius: 12px;
-    text-decoration: none;
-    color: var(--text);
-    text-align: center;
-    width: 100%;
-    max-width: 350px;
-    border: 1px solid var(--border-color);
-    transition: transform 0.2s, border-color 0.2s;
-}
-
-.contact-card:hover {
-    transform: translateY(-3px);
-}
-
-.border-whatsapp:hover { border-color: var(--success); }
-.border-email:hover { border-color: var(--primary); }
-
-.contact-icon {
-    font-size: 2rem;
-    display: block;
-    margin-bottom: 10px;
-}
-
-/* RESULT PANEL */
-#result {
-    max-width: 700px;
-    margin: 30px auto 0 auto;
-    border-radius: 12px;
-}
-
-.result-box {
-    background: var(--surface);
-    border: 1px solid var(--border-color);
-    padding: 25px;
-    border-radius: 12px;
-}
-
-/* FOOTER */
-.footer {
-    text-align: center;
-    padding: 40px;
-    color: var(--text-muted);
-    font-size: 0.9 taxi-rem;
-    border-top: 1px solid var(--border-color);
-    background: var(--surface);
-}
-
-.sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-}
-
-/* RESPONSIVE LAYOUT */
-@media (max-width: 768px) {
-    .header { flex-direction: column; gap: 15px; padding: 20px; }
-    .hero h1 { font-size: 2.2rem; }
-    .stats-container { flex-direction: column; gap: 20px; margin-top: 20px; }
-    .contact-cards { flex-direction: column; align-items: center; }
-}
+    // Fermer le menu mobile au clic sur un lien
+    document.querySelectorAll('.mobile-menu a').forEach(link => {
+        link.addEventListener('click', () => {
+            document.getElementById('mobileMenu').style.display = 'none';
+        });
+    });
+});
